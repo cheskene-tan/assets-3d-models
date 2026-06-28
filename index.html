@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Asset Viewer</title>
 
     <script type="module"
@@ -8,42 +11,68 @@
     </script>
 
     <style>
-        html, body {
-            margin:0;
-            width:100%;
-            height:100%;
-            overflow:hidden;
-            background:#f2f2f2;
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #e8e8e8;
         }
 
-        model-viewer{
-            width:100%;
-            height:100%;
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(#ffffff, #d9d9d9);
         }
 
-        #error{
-            position:absolute;
-            top:20px;
-            left:20px;
-            padding:15px;
-            background:white;
-            border-radius:8px;
-            font-family:Arial;
-            display:none;
+        #message {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+
+            background: rgba(255,255,255,0.95);
+            padding: 12px 18px;
+            border-radius: 8px;
+
+            box-shadow: 0 2px 10px rgba(0,0,0,.25);
+        }
+
+        #title{
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:5px;
+        }
+
+        #subtitle{
+            font-size:14px;
+            color:#555;
         }
     </style>
+
 </head>
 
 <body>
 
-<div id="error"></div>
+<div id="message">
+    <div id="title">Loading...</div>
+    <div id="subtitle"></div>
+</div>
 
 <model-viewer
     id="viewer"
     camera-controls
+    touch-action="pan-y"
     auto-rotate
+    auto-rotate-delay="3000"
+    rotation-per-second="20deg"
     shadow-intensity="1"
-    exposure="1">
+    exposure="1"
+    environment-image="neutral"
+    loading="eager">
+
 </model-viewer>
 
 <script>
@@ -52,32 +81,49 @@ const params = new URLSearchParams(window.location.search);
 
 const assetId = params.get("assetid");
 
-if(assetId){
+const viewer = document.getElementById("viewer");
 
-    const model = `3d_models/${assetId}.glb`;
+const title = document.getElementById("title");
 
-    const viewer = document.getElementById("viewer");
+const subtitle = document.getElementById("subtitle");
 
-    viewer.src = model;
+if(!assetId){
 
-    viewer.addEventListener("error", () => {
-        const err = document.getElementById("error");
-        err.style.display="block";
-        err.innerHTML =
-            `<h3>Model not found</h3>
-             Asset_ID: ${assetId}`;
-    });
+    title.innerHTML = "No Asset Selected";
+
+    subtitle.innerHTML = "Power BI did not pass an Asset ID.";
 
 }
 else{
 
-    document.getElementById("error").style.display="block";
-    document.getElementById("error").innerHTML =
-        "No Asset ID supplied.";
+    const modelPath = `3d_models/${assetId}.glb`;
+
+    title.innerHTML = "Loading Asset";
+
+    subtitle.innerHTML = assetId;
+
+    viewer.src = modelPath;
+
+    viewer.addEventListener("load", () => {
+
+        document.getElementById("message").style.display = "none";
+
+    });
+
+    viewer.addEventListener("error", () => {
+
+        title.innerHTML = "Model Not Found";
+
+        subtitle.innerHTML =
+            "Expected file:<br>" +
+            modelPath;
+
+    });
 
 }
 
 </script>
 
 </body>
+
 </html>
